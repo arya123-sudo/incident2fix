@@ -47,6 +47,10 @@ def main() -> int:
     args = ap.parse_args()
 
     iid = incident_id(args.incident)
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
     os.makedirs(REPORTS, exist_ok=True)
 
     print(f"== Incident2Fix: {iid} ==")
