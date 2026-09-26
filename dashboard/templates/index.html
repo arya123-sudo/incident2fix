@@ -164,7 +164,9 @@ function gateCard(inc, n, title, contextHtml, showWhen){
   el.className = "gate";
   let body = `<h4>Gate ${n}: ${title}</h4>`;
   if (dec) {
-  body += `...`;
+  body += `<p><span class="badge ${dec.decision === "approved" ? "ok" : "sev1"}">${dec.decision}</span>
+    <span class="tl-time">${esc(dec.time)}</span></p>
+    ${dec.comment ? `<p class="comment">“${esc(dec.comment)}”</p>` : ""}`;
 } else if (inc.pipeline_status === "Resolved") {
   // A rejected gate stops the pipeline, so a Resolved incident passed both gates
   // (approved in the terminal; no dashboard decision was recorded).
