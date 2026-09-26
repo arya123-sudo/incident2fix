@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incident2Fix Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Incident2Fix</h1>
+  <p>Production error &rarr; root cause &rarr; fix &rarr; regression tests &mdash; Bob 2.0 agents, human gates</p>
+</header>
+<main>
+  <section id="incidents"><h2>Incidents</h2><div id="cards"></div></section>
+  <section id="detail" hidden>
+    <h2 id="dtitle"></h2>
+    <div id="stepper"></div>
+    <div id="gates">
+      <button id="g1" disabled>Approve RCA &rarr; propose fix (Gate 1)</button>
+      <button id="g2" disabled>Approve diff &rarr; apply patch (Gate 2)</button>
+    </div>
+    <div id="stages"></div>
+  </section>
+</main>
+<script>
+const STAGES = ["TRIAGE","RCA","FIX","TESTS"];
+let current = null;
+async function load(){
+  const r = await fetch("/api/incidents"); const list = await r.json();
+  const cards = document.getElementById("cards"); cards.innerHTML = "";
+  list.forEach(i => {
+    const done = STAGES.filter(s => i.stages[s]).length;
+    const d = document.createElement("div"); d.className = "card";
+    d.innerHTML = `<h3>${i.id}</h3><p>${i.title}</p><span>${done}/4 stages</span>`;
+    d.onclick = () => select(i.id, i.title);
+    cards.appendChild(d);
+  });
+}
+async function select(id, title){
+  current = id;
+  document.getElementById("detail").hidden = false;
+  document.getElementById("dtitle").textContent = id + " — " + title;
+  const r = await fetch("/api/incidents"); const list = await r.json();
+  const inc = list.find(x => x.id === id);
+  document.getElementById("stepper").innerHTML = STAGES.map(s =>
+    `<span class="step ${inc.stages[s] ? "done" : ""}">${s}</span>`).join("");
+  document.getElementById("g1").disabled = !(inc.stages["RCA"] && !inc.stages["FIX"]);
+  document.getElementById("g2").disabled = !(inc.stages["FIX"] && !inc.stages["TESTS"]);
+  const box = document.getElementById("stages"); box.innerHTML = "";
+  for (const s of STAGES){
+    const rr = await fetch(`/api/report/${id}/${s}`); const j = await rr.json();
+    const div = document.createElement("details"); div.open = (s === "RCA");
+    div.innerHTML = `<summary>${s} ${j.status === "done" ? "✓" : "…"}</summary>
+      <pre>${j.status === "done" ? escapeHtml(j.content) : "waiting for pipeline…"}</pre>`;
+    box.appendChild(div);
+  }
+}
+function escapeHtml(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+async function approve(gate){
+  await fetch("/api/approve", {method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({incident: current, gate})});
+  alert(gate + " approved for " + current);
+  select(current, document.getElementById("dtitle").textContent);
+}
+document.getElementById("g1").onclick = () => approve("GATE1");
+document.getElementById("g2").onclick = () => approve("GATE2");
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>

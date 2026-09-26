@@ -23,3 +23,11 @@ python pipeline/run.py demo-app/incidents/INCIDENT-001.md
 
 ## Team
 Two-person build: backend/Bob pipeline + frontend dashboard & submission.
+
+## Dashboard
+
+```bash
+.venv/bin/python dashboard/app.py   # open http://127.0.0.1:5001
+```
+
+Incident cards, live stage tracker, gate approval buttons, and report viewer.
