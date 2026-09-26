@@ -90,7 +90,7 @@ async function refresh(){
 function renderStats(){
   const resolved = incidents.filter(i => i.pipeline_status === "Resolved").length;
   const stagesDone = incidents.reduce((a,i) => a + i.progress, 0);
-  const tests = incidents.reduce((a,i) => a + (i.tests_passed || 0), 0);
+  const tests = incidents.reduce((a,i) => Math.max(a, i.tests_passed || 0), 0);
   document.getElementById("stats").innerHTML = `
     <div class="stat"><b>${incidents.length}</b><span>incidents</span></div>
     <div class="stat"><b>${resolved}</b><span>resolved</span></div>
