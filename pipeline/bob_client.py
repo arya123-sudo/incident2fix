@@ -20,11 +20,12 @@ def run_skill(skill: str, prompt: str, workdir: str) -> str:
     skill_file = os.path.join(".bob", "skills", skill, "SKILL.md")
     with open(os.path.join(workdir, skill_file)) as f:
         brief = f.read()
+    # Bob Shell's non-interactive form: bob -p "prompt".
+    # The skill brief is prepended so Bob acts as that stage's agent.
     full_prompt = f"{brief}\n\n---\n\nTASK\n{prompt}\n"
     try:
         proc = subprocess.run(
-            [bob_bin, "run", "--skill", skill_file],
-            input=full_prompt,
+            [bob_bin, "-p", full_prompt],
             capture_output=True,
             text=True,
             cwd=workdir,
