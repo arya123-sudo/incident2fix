@@ -31,3 +31,14 @@ Two-person build: backend/Bob pipeline + frontend dashboard & submission.
 ```
 
 Incident cards, live stage tracker, gate approval buttons, and report viewer.
+
+## Bob API key (required for the pipeline)
+
+The pipeline calls Bob non-interactively (`bob -p`), which needs API-key auth:
+
+```powershell
+$env:BOB_API_KEY="paste-your-key-here"
+```
+
+Get the key from your IBM Bob account portal (log in with the same IBM ID),
+or ask in the hackathon Discord. Never paste the key into chat or commit it.
