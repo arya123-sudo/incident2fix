@@ -15,7 +15,14 @@ def run_skill(skill: str, prompt: str, workdir: str) -> str:
 
     skill: one of incident-triage, root-cause-analysis, fix-generation,
            regression-testing (matches .bob/skills/<skill>/SKILL.md).
+
+    Requires the BOB_API_KEY environment variable (Bob headless auth).
     """
+    if not os.environ.get("BOB_API_KEY"):
+        raise RuntimeError(
+            "BOB_API_KEY is not set. In PowerShell: "
+            '$env:BOB_API_KEY="paste-your-key-here"'
+        )
     bob_bin = os.environ.get("BOB_CLI", "bob")
     skill_file = os.path.join(".bob", "skills", skill, "SKILL.md")
     with open(os.path.join(workdir, skill_file)) as f:

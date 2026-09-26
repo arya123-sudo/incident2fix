@@ -85,6 +85,19 @@ def main() -> int:
         print("Stopped at gate 2.")
         return 2
 
+    print("\n[gate 2] applying approved patch (Bob 2.0)...")
+    apply = run_skill(
+        "fix-generation",
+        f"The human APPROVED the diff in reports/FIX-{iid}.md for {iid}. "
+        "Apply it now: edit the repo files exactly as the approved diff "
+        "specifies. Do not change anything beyond the approved diff. "
+        f"Repo root is {ROOT}.",
+        ROOT,
+    )
+    with open(os.path.join(REPORTS, f"APPLY-{iid}.md"), "w") as f:
+        f.write(apply)
+    print(apply[:400])
+
     print("\n[4/4] regression testing (Bob 2.0)...")
     tests = run_skill(
         "regression-testing",
