@@ -24,3 +24,13 @@ That is also why CI runs only the baseline suite in `demo-app/tests/`.
 Observed suite growth in the real runs: 5 (baseline) → 18 (after
 INCIDENT-001) → 45 (after all three). Per-run evidence, including the
 tests Bob wrote, is in `reports/TESTS-*.md`.
+
+## A note on file names
+
+You'll see two naming conventions here. `test_regression_001/002/003.py`
+(one file per incident) came from the final pipeline runs;
+`test_regression_INCIDENT-001/002.py` came from an earlier run — note that
+despite its name, `test_regression_INCIDENT-001.py` also covers incidents 2
+and 3, because Bob's test agent wrote broader tests that run. Both sets are
+kept verbatim as evidence: `reports/TESTS-*.md` cite these files by name, so
+renaming them would break the evidence trail.
