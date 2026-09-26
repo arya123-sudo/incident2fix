@@ -15,6 +15,10 @@ import os
 import re
 import sys
 
+# Allow running as a script: `py pipeline/run.py ...` from the repo root.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 from pipeline.bob_client import run_skill
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
