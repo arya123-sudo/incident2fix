@@ -13,6 +13,11 @@ Built live during the IBM Bob 2.0 hackathon (lablab.ai, Sept 25-27 2026).
 
 <!-- TODO(screenshot): friend to add an annotated dashboard screenshot here -->
 📊 **Dashboard preview:**
+![Dashboard Preview](docs/dashboard-preview.png)
+
+![Dashboard Detail](docs/dashboard-detail.png)
+
+![Dashboard Report](docs/dashboard-report.png)
 
 ## What is IBM Bob 2.0?
 
