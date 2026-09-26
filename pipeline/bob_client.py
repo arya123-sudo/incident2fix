@@ -40,6 +40,8 @@ def run_skill(skill: str, prompt: str, workdir: str) -> str:
                 subprocess.list2cmdline(args),
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=workdir,
                 timeout=900,
                 shell=True,
@@ -49,6 +51,8 @@ def run_skill(skill: str, prompt: str, workdir: str) -> str:
                 args,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=workdir,
                 timeout=900,
             )
@@ -59,4 +63,4 @@ def run_skill(skill: str, prompt: str, workdir: str) -> str:
         )
     if proc.returncode != 0:
         raise RuntimeError(f"Bob 2.0 skill '{skill}' failed: {proc.stderr[:800]}")
-    return proc.stdout
+    return proc.stdout or ""
