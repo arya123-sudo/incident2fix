@@ -30,14 +30,28 @@ def run_skill(skill: str, prompt: str, workdir: str) -> str:
     # Bob Shell's non-interactive form: bob -p "prompt".
     # The skill brief is prepended so Bob acts as that stage's agent.
     full_prompt = f"{brief}\n\n---\n\nTASK\n{prompt}\n"
+    args = [bob_bin, "-p", full_prompt]
     try:
-        proc = subprocess.run(
-            [bob_bin, "-p", full_prompt],
-            capture_output=True,
-            text=True,
-            cwd=workdir,
-            timeout=900,
-        )
+        if os.name == "nt":
+            # On Windows `bob` is normally an npm .cmd shim, which
+            # CreateProcess cannot launch directly - go through cmd.exe
+            # so PATHEXT resolution finds it.
+            proc = subprocess.run(
+                subprocess.list2cmdline(args),
+                capture_output=True,
+                text=True,
+                cwd=workdir,
+                timeout=900,
+                shell=True,
+            )
+        else:
+            proc = subprocess.run(
+                args,
+                capture_output=True,
+                text=True,
+                cwd=workdir,
+                timeout=900,
+            )
     except FileNotFoundError:
         raise RuntimeError(
             "Bob 2.0 CLI not found. Install Bob 2.0 and/or set BOB_CLI "
