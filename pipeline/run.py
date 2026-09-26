@@ -32,10 +32,18 @@ def incident_id(path: str) -> str:
     return m.group(1)
 
 
-def gate(name: str, auto_yes: bool) -> bool:
+def gate(name: str, auto_yes: bool, iid: str, n: int) -> bool:
     if auto_yes:
         print(f"[gate] {name}: auto-approved (--yes)")
         return True
+    # A human decision recorded from the dashboard counts: the dashboard
+    # writes APPROVAL-GATE{n}-{iid}.txt or REJECTION-GATE{n}-{iid}.txt
+    # into reports/. Terminal prompt is the fallback.
+    for prefix, approved in (("APPROVAL", True), ("REJECTION", False)):
+        p = os.path.join(REPORTS, f"{prefix}-GATE{n}-{iid}.txt")
+        if os.path.exists(p):
+            print(f"[gate] {name}: dashboard decision found ({prefix.lower()})")
+            return approved
     ans = input(f"[gate] {name} - approve? [y/N] ").strip().lower()
     return ans in ("y", "yes")
 
@@ -52,6 +60,13 @@ def main() -> int:
     except Exception:
         pass
     os.makedirs(REPORTS, exist_ok=True)
+    # Fresh run, fresh human decisions: drop any dashboard decision files
+    # left over from a previous run of this incident.
+    for n in (1, 2):
+        for prefix in ("APPROVAL", "REJECTION"):
+            p = os.path.join(REPORTS, f"{prefix}-GATE{n}-{iid}.txt")
+            if os.path.exists(p):
+                os.remove(p)
 
     print(f"== Incident2Fix: {iid} ==")
 
@@ -75,7 +90,7 @@ def main() -> int:
         f.write(rca)
     print(rca[:600])
 
-    if not gate("GATE 1 - approve RCA, generate fix", args.yes):
+    if not gate("GATE 1 - approve RCA, generate fix", args.yes, iid, 1):
         print("Stopped at gate 1.")
         return 2
 
@@ -89,7 +104,7 @@ def main() -> int:
         f.write(fix)
     print(fix[:800])
 
-    if not gate("GATE 2 - approve diff, apply patch", args.yes):
+    if not gate("GATE 2 - approve diff, apply patch", args.yes, iid, 2):
         print("Stopped at gate 2.")
         return 2
 
