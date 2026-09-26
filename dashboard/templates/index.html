@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incident2Fix Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">◈</div>
+    <div>
+      <h1>Incident2Fix</h1>
+      <p>Production error &rarr; root cause &rarr; fix &rarr; regression tests &mdash; Bob 2.0 agents, human gates</p>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<main>
+  <section>
+    <h2>Incidents</h2>
+    <div id="cards" class="cards"></div>
+  </section>
+
+  <section id="detail" hidden>
+    <div class="detail-head">
+      <h2 id="dtitle"></h2>
+      <div id="dbadges" class="badges"></div>
+    </div>
+    <p id="dsummary" class="summary"></p>
+
+    <h3>Agent evidence trail</h3>
+    <p class="hint">What each Bob 2.0 agent did, in order — click any stage for the full report.</p>
+    <div id="timeline" class="timeline"></div>
+
+    <h3>Human gates</h3>
+    <p class="hint">The pipeline terminal enforces the gates; decisions recorded here are the reviewer's log.</p>
+    <div id="gates" class="gates"></div>
+
+    <h3>Reports</h3>
+    <div id="tabs" class="tabs"></div>
+    <div id="report-view" class="report-view"></div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="arch">
+      <div class="arch-node">Incident<br><span>.md report</span></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node agents">Bob 2.0 agents<br><span>Triage · RCA · Fix · Tests</span></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node gates">Human gates<br><span>Approve RCA · Approve diff</span></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">Dashboard<br><span>evidence trail</span></div>
+    </div>
+    <p class="hint">Agent briefs live in <code>.bob/skills/</code>; gate policy in <code>.bob/rules/</code>. No code changes without a human typing <code>y</code> at both gates.</p>
+  </section>
+</main>
+
+<footer>
+  <p>Incident2Fix · IBM Bob 2.0 hackathon · <a href="https://github.com/arya123-sudo/incident2fix">GitHub</a></p>
+</footer>
+
+<script>
+const STAGE_META = [
+  {key:"TRIAGE", agent:"Triage Agent"},
+  {key:"RCA",    agent:"Root-Cause Agent"},
+  {key:"FIX",    agent:"Fix Agent"},
+  {key:"APPLY",  agent:"Apply Patch"},
+  {key:"TESTS",  agent:"Regression Test Agent"},
+];
+let current = null, incidents = [], activeTab = "TRIAGE", diffMode = true;
+
+const esc = t => t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const sevClass = s => s.includes("1") ? "sev1" : s.includes("2") ? "sev2" : "sev3";
+const statusClass = s => s === "Resolved" ? "ok" : s === "In progress" ? "warn" : "muted";
+
+async function refresh(){
+  const r = await fetch("/api/incidents");
+  incidents = await r.json();
+  renderStats(); renderCards();
+  if (current) {
+    const inc = incidents.find(x => x.id === current);
+    if (inc) renderDetail(inc);
+  }
+}
+
+function renderStats(){
+  const resolved = incidents.filter(i => i.pipeline_status === "Resolved").length;
+  const stagesDone = incidents.reduce((a,i) => a + i.progress, 0);
+  const tests = incidents.reduce((a,i) => a + (i.tests_passed || 0), 0);
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><b>${incidents.length}</b><span>incidents</span></div>
+    <div class="stat"><b>${resolved}</b><span>resolved</span></div>
+    <div class="stat"><b>${stagesDone}/${incidents.length * 5}</b><span>stages</span></div>
+    <div class="stat"><b>${tests}</b><span>tests passing</span></div>`;
+}
+
+function renderCards(){
+  const box = document.getElementById("cards");
+  box.innerHTML = "";
+  incidents.forEach(i => {
+    const d = document.createElement("div");
+    d.className = "card" + (current === i.id ? " selected" : "");
+    d.innerHTML = `
+      <div class="badges">
+        <span class="badge ${sevClass(i.severity)}">${esc(i.severity)}</span>
+        <span class="badge ${statusClass(i.pipeline_status)}">${esc(i.pipeline_status)}</span>
+      </div>
+      <h3>${esc(i.id)}</h3>
+      <p>${esc(i.title.replace(/^INCIDENT-\d+:\s*/, ""))}</p>
+      <div class="progress"><div style="width:${i.progress / 5 * 100}%"></div></div>
+      <span class="meta">${i.progress}/5 stages${i.tests_passed ? ` · ${i.tests_passed} tests ✓` : ""}</span>`;
+    d.onclick = () => { current = i.id; activeTab = "TRIAGE"; diffMode = true; refresh(); };
+    box.appendChild(d);
+  });
+}
+
+async function renderDetail(inc){
+  document.getElementById("detail").hidden = false;
+  document.getElementById("dtitle").textContent = inc.id;
+  document.getElementById("dbadges").innerHTML = `
+    <span class="badge ${sevClass(inc.severity)}">${esc(inc.severity)}</span>
+    <span class="badge ${statusClass(inc.pipeline_status)}">${esc(inc.pipeline_status)}</span>
+    ${inc.date ? `<span class="badge muted">${esc(inc.date)}</span>` : ""}`;
+  document.getElementById("dsummary").textContent = inc.summary || "No summary.";
+  try {
+    const r = await fetch(`/api/diff/${inc.id}`);
+    const d = await r.json();
+    diffStatsCache = d.status === "done" ? d : null;
+  } catch(e) { diffStatsCache = null; }
+  renderTimeline(inc); renderGates(inc); renderTabs(inc); renderReport(inc);
+}
+
+function renderTimeline(inc){
+  const box = document.getElementById("timeline");
+  box.innerHTML = "";
+  STAGE_META.forEach((s, idx) => {
+    const st = inc.stages[s.key];
+    const done = st.status === "done";
+    const el = document.createElement("div");
+    el.className = "tl-item" + (done ? " done" : "");
+    el.innerHTML = `
+      <div class="tl-dot">${done ? "✓" : idx + 1}</div>
+      <div class="tl-body">
+        <div class="tl-head"><b>${s.agent}</b>
+          <span class="tl-stage">${s.key}</span>
+          ${done ? `<span class="tl-time">${esc(st.time)}</span>` : `<span class="tl-wait">waiting for pipeline…</span>`}
+        </div>
+        <p>${done ? esc(st.snippet || "Report saved.") : "Run <code>py pipeline/run.py demo-app/incidents/" + inc.id + ".md</code>"}</p>
+        ${done ? `<button class="link" data-tab="${s.key}">View full report · ${st.size_kb} KB</button>` : ""}
+      </div>`;
+    box.appendChild(el);
+  });
+  box.querySelectorAll("button.link").forEach(b =>
+    b.onclick = () => { activeTab = b.dataset.tab; diffMode = true; renderTabs(inc); renderReport(inc); });
+}
+
+function gateCard(inc, n, title, contextHtml, showWhen){
+  const dec = n === 1 ? inc.gate1 : inc.gate2;
+  const el = document.createElement("div");
+  el.className = "gate";
+  let body = `<h4>Gate ${n}: ${title}</h4>`;
+  if (dec) {
+    body += `<p><span class="badge ${dec.decision === "approved" ? "ok" : "sev1"}">${dec.decision}</span>
+      <span class="tl-time">${esc(dec.time)}</span></p>
+      ${dec.comment ? `<p class="comment">“${esc(dec.comment)}”</p>` : ""}`;
+  } else if (showWhen) {
+    body += `${contextHtml}
+      <textarea id="comment${n}" placeholder="Review comment (optional)…"></textarea>
+      <div class="gate-btns">
+        <button class="approve" onclick="decide(${n},'approved')">Approve</button>
+        <button class="reject" onclick="decide(${n},'rejected')">Reject</button>
+      </div>`;
+  } else {
+    body += `<p class="tl-wait">Locked — complete the previous stage first.</p>`;
+  }
+  el.innerHTML = body;
+  return el;
+}
+
+function renderGates(inc){
+  const box = document.getElementById("gates");
+  box.innerHTML = "";
+  const rca = inc.stages["RCA"], fix = inc.stages["FIX"], apply = inc.stages["APPLY"];
+  box.appendChild(gateCard(inc, 1, "Approve RCA → generate fix",
+    `<p class="ctx"><b>RCA finding:</b> ${esc(rca.snippet || "")}</p>`,
+    rca.status === "done" && fix.status !== "done"));
+  const d = diffStatsCache;
+  box.appendChild(gateCard(inc, 2, "Approve diff → apply patch",
+    `<p class="ctx"><b>Proposed change:</b> ${d ? `+${d.additions} / −${d.deletions} lines` : "see FIX report"}
+     — ${esc(fix.snippet || "")}</p>`,
+    fix.status === "done" && apply.status !== "done"));
+}
+
+let diffStatsCache = null;
+
+async function decide(n, decision){
+  const comment = document.getElementById("comment" + n).value;
+  await fetch("/api/decision", {method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({incident: current, gate: String(n), decision, comment})});
+  refresh();
+}
+
+function renderTabs(inc){
+  const box = document.getElementById("tabs");
+  box.innerHTML = "";
+  STAGE_META.forEach(s => {
+    const st = inc.stages[s.key];
+    const b = document.createElement("button");
+    b.className = "tab" + (activeTab === s.key ? " active" : "");
+    b.textContent = `${s.key} ${st.status === "done" ? "✓" : "·"}`;
+    b.onclick = () => { activeTab = s.key; diffMode = true; renderTabs(inc); renderReport(inc); };
+    box.appendChild(b);
+  });
+}
+
+async function renderReport(inc){
+  const view = document.getElementById("report-view");
+  const st = inc.stages[activeTab];
+  if (st.status !== "done") {
+    view.innerHTML = `<p class="tl-wait">No ${activeTab} report yet — run the pipeline for ${inc.id}.</p>`;
+    return;
+  }
+  if (activeTab === "FIX") {
+    const r = await fetch(`/api/diff/${inc.id}`);
+    const d = await r.json();
+    diffStatsCache = d.status === "done" ? d : null;
+    if (d.status === "done") {
+      const toggle = `<div class="diff-bar">
+          <span class="badge ok">+${d.additions}</span>
+          <span class="badge sev1">−${d.deletions}</span>
+          <button class="link" id="diffToggle">${diffMode ? "Show full report" : "Show diff only"}</button>
+        </div>`;
+      if (diffMode) {
+        view.innerHTML = toggle + `<pre class="diff">` + d.lines.map(l =>
+          `<span class="dl-${l.t}">${esc(l.text) || " "}</span>`).join("\n") + `</pre>`;
+      } else {
+        const rr = await fetch(`/api/report/${inc.id}/FIX`);
+        const j = await rr.json();
+        view.innerHTML = toggle + `<pre>${esc(j.content)}</pre>`;
+      }
+      document.getElementById("diffToggle").onclick = () => { diffMode = !diffMode; renderReport(inc); };
+      return;
+    }
+  }
+  const r = await fetch(`/api/report/${inc.id}/${activeTab}`);
+  const j = await r.json();
+  view.innerHTML = `<div class="diff-bar"><span class="tl-time">${esc(st.time)} · ${st.size_kb} KB</span></div>
+    <pre>${esc(j.content)}</pre>`;
+}
+
+refresh(); setInterval(refresh, 8000);
+</script>
+</body>
+</html>
