@@ -61,7 +61,7 @@ def main() -> int:
         f"Triage the incident at {args.incident}. Repo root is {ROOT}.",
         ROOT,
     )
-    with open(os.path.join(REPORTS, f"TRIAGE-{iid}.md"), "w") as f:
+    with open(os.path.join(REPORTS, f"TRIAGE-{iid}.md"), "w", encoding="utf-8") as f:
         f.write(triage)
     print(triage[:600])
 
@@ -71,7 +71,7 @@ def main() -> int:
         f"Perform RCA using reports/TRIAGE-{iid}.md. Repo root is {ROOT}.",
         ROOT,
     )
-    with open(os.path.join(REPORTS, f"RCA-{iid}.md"), "w") as f:
+    with open(os.path.join(REPORTS, f"RCA-{iid}.md"), "w", encoding="utf-8") as f:
         f.write(rca)
     print(rca[:600])
 
@@ -85,7 +85,7 @@ def main() -> int:
         f"Propose a fix using the approved reports/RCA-{iid}.md. Repo root is {ROOT}.",
         ROOT,
     )
-    with open(os.path.join(REPORTS, f"FIX-{iid}.md"), "w") as f:
+    with open(os.path.join(REPORTS, f"FIX-{iid}.md"), "w", encoding="utf-8") as f:
         f.write(fix)
     print(fix[:800])
 
@@ -102,7 +102,7 @@ def main() -> int:
         f"Repo root is {ROOT}.",
         ROOT,
     )
-    with open(os.path.join(REPORTS, f"APPLY-{iid}.md"), "w") as f:
+    with open(os.path.join(REPORTS, f"APPLY-{iid}.md"), "w", encoding="utf-8") as f:
         f.write(apply)
     print(apply[:400])
 
@@ -112,7 +112,7 @@ def main() -> int:
         f"Generate and run regression tests for {iid} using reports/FIX-{iid}.md. Repo root is {ROOT}.",
         ROOT,
     )
-    with open(os.path.join(REPORTS, f"TESTS-{iid}.md"), "w") as f:
+    with open(os.path.join(REPORTS, f"TESTS-{iid}.md"), "w", encoding="utf-8") as f:
         f.write(tests)
     print(tests[:600])
 
