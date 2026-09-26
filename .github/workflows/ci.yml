@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install flask pytest
+      # Baseline suite only: it is green on the pristine (buggy) checkout.
+      # demo-app/regression_tests/ holds Bob-generated post-fix tests, which
+      # are expected to fail until the pipeline runs — see docs/TESTING.md.
+      - run: python -m pytest demo-app/tests -q
