@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
 .venv/
-reports/
 *.egg-info/
+
+# Secrets - never commit these
+.env
+.env.*
+*.pem
+*.key

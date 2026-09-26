@@ -1,5 +1,7 @@
 # Incident2Fix
 
+[![ci](https://github.com/arya123-sudo/incident2fix/actions/workflows/ci.yml/badge.svg)](https://github.com/arya123-sudo/incident2fix/actions)
+
 Production error -> root cause -> fix -> regression tests, driven by IBM Bob 2.0 agents with human approval gates.
 
 > Not just AI for incidents — an auditable agent that turns incidents into tested code fixes, with humans in control.
