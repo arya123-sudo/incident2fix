@@ -17,3 +17,7 @@ Built on a seeded buggy Flask app with three realistic incidents: a EUR checkout
 ## Links
 - GitHub repo: <TODO>
 - Demo video: <TODO>
+
+## Don't forget
+- `/bob-sessions/` folder with session summaries + screenshots (required)
+- Screenshots of Bob session summaries in the submission
