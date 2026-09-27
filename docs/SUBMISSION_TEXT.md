@@ -44,7 +44,7 @@ and open the dashboard at `http://127.0.0.1:5001`.
 
 ## Links
 - GitHub: https://github.com/arya123-sudo/incident2fix
-- Demo video: https://drive.google.com/file/d/1hkeDWhCVbx-KLclPNTdeXI8H8osVMV_c/view?usp=drivesdk
+- Demo video: https://drive.google.com/file/d/1nL16x-PBwCHqmRxYTtKokeams63tsa1T/view?usp=drivesdk
 
 ## Differentiation one-liner
 Not just AI for incidents — an auditable agent that turns incidents into
