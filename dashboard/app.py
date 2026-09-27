@@ -154,25 +154,30 @@ def parse_diff(iid):
         content = fh.read()
     if "@@" not in content and "diff --git" not in content:
         return {"status": "empty", "note": "No unified diff block found - see the full report."}
-    lines, adds, dels, in_hunk = [], 0, 0, False
+    lines, adds, dels, in_hunk, indent = [], 0, 0, False, ""
     for raw in content.splitlines():
         line = raw.rstrip("\n")
-        if line.startswith("diff --git") or line.startswith("@@"):
+        stripped = line.lstrip()
+        if stripped.startswith("diff --git") or stripped.startswith("@@"):
             in_hunk = True
-            lines.append({"t": "hunk", "text": line})
+            # Diff blocks in Bob transcripts are indented (e.g. inside a
+            # ```diff fence); capture that indent so +/- markers line up.
+            indent = line[: len(line) - len(stripped)]
+            lines.append({"t": "hunk", "text": stripped})
             continue
         if not in_hunk:
             continue
-        if line.startswith("+++") or line.startswith("---"):
+        body = line[len(indent):] if indent and line.startswith(indent) else stripped
+        if body.startswith("+++") or body.startswith("---"):
             continue
-        if line.startswith("+"):
+        if body.startswith("+"):
             adds += 1
-            lines.append({"t": "add", "text": line[1:]})
-        elif line.startswith("-"):
+            lines.append({"t": "add", "text": body[1:]})
+        elif body.startswith("-"):
             dels += 1
-            lines.append({"t": "del", "text": line[1:]})
-        elif line.startswith(" ") or not line.strip():
-            lines.append({"t": "ctx", "text": line[1:] if line.startswith(" ") else line})
+            lines.append({"t": "del", "text": body[1:]})
+        elif body.startswith(" ") or not body.strip():
+            lines.append({"t": "ctx", "text": body[1:] if body.startswith(" ") else body})
         else:
             in_hunk = False
     if not lines:

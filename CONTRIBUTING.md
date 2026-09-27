@@ -15,6 +15,7 @@ python -m pytest demo-app/tests -q   # 5 baseline tests, green on the buggy chec
 3. Add a happy-path test to `demo-app/tests/test_smoke.py` that passes
    *despite* the bug, and note which incident it is the baseline for
    (see `docs/TESTING.md` for the traceability convention).
+   It must pass on the buggy checkout — a baseline that already fails can't tell a new regression apart from the original bug.
 4. Run the pipeline: `py pipeline/run.py demo-app/incidents/INCIDENT-00X.md`
    (needs `$env:BOB_API_KEY`), approving both gates.
 5. Copy the test files Bob generated into `demo-app/regression_tests/`

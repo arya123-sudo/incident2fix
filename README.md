@@ -132,9 +132,14 @@ gaps, is in [docs/TESTING.md](docs/TESTING.md).
 - `.bob/skills/` — the four agent briefs Bob 2.0 executes, one per stage
 - `.bob/rules/` — pipeline governance (the two human gates) + Python standards
 - `demo-app/` — intentionally buggy Flask app + 3 incident reports
+- `demo-app/regression_tests/` — Bob-written regression tests, kept verbatim as evidence (two file-naming conventions — see that folder's README for why)
+
 - `pipeline/` — orchestrator: feeds each stage's inputs to Bob 2.0, enforces the gates
 - `reports/` — real Bob 2.0 outputs from verified runs (evidence trail)
 - `dashboard/` — Flask UI: incident cards, stage tracker, report viewer
+Green/red diff viewer on the FIX report tab — the human reviews the AI-proposed patch line by line before approving Gate 2.
+
+Rejection path (demonstrated): Gate 2 rejected — the pipeline stops here; APPLY and TESTS never run, no code is touched. 
 - `docs/` — architecture (with diagram), demo script, submission notes
 - `bob-sessions/` — log of the real Bob 2.0 sessions behind this build
 
