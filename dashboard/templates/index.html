@@ -167,9 +167,10 @@ function gateCard(inc, n, title, contextHtml, showWhen){
   body += `<p><span class="badge ${dec.decision === "approved" ? "ok" : "sev1"}">${dec.decision}</span>
     <span class="tl-time">${esc(dec.time)}</span></p>
     ${dec.comment ? `<p class="comment">“${esc(dec.comment)}”</p>` : ""}`;
-} else if (inc.pipeline_status === "Resolved") {
-  // A rejected gate stops the pipeline, so a Resolved incident passed both gates
-  // (approved in the terminal; no dashboard decision was recorded).
+} else if ((inc.stages[n === 1 ? "FIX" : "APPLY"] || {}).status === "done") {
+  // The pipeline stops at a rejected gate, so if the stage after this gate ran,
+  // the gate was approved during the pipeline run (in the terminal — no
+  // dashboard decision was recorded).
   body += `<p><span class="badge ok">approved</span>
     <span class="tl-time">during pipeline run</span></p>`;
 } else if (showWhen) {
