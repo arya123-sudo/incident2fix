@@ -44,14 +44,14 @@ and open the dashboard at `http://127.0.0.1:5001`.
 
 ## Links
 - GitHub: https://github.com/arya123-sudo/incident2fix
-- Demo video: (paste YouTube unlisted link here)
+- Demo video: https://drive.google.com/file/d/1hkeDWhCVbx-KLclPNTdeXI8H8osVMV_c/view?usp=drivesdk
 
 ## Differentiation one-liner
 Not just AI for incidents — an auditable agent that turns incidents into
 tested code fixes, with humans in control.
 
 ## Pre-submit checklist
-- [ ] Demo video recorded; YouTube unlisted link pasted above and in README
+- [x] Demo video recorded; link pasted above and in README
 - [ ] Dashboard screenshot embedded in README (replaces placeholder)
 - [ ] `bob-sessions/` run summaries present (2026-09-26 runs committed)
 - [ ] Rechecked official lablab.ai rules and exact deadline before submitting

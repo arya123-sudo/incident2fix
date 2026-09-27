@@ -8,8 +8,7 @@ Production error -> root cause -> fix -> regression tests, driven by IBM Bob 2.0
 
 Built live during the IBM Bob 2.0 hackathon (lablab.ai, Sept 25-27 2026).
 
-<!-- TODO(video): replace with the demo video link before submitting -->
-🎬 **Demo video:** coming soon — 2-minute walkthrough of a live incident run.
+🎬 **Demo video:** [2-minute walkthrough of a live incident run](https://drive.google.com/file/d/1hkeDWhCVbx-KLclPNTdeXI8H8osVMV_c/view?usp=drivesdk)
 
 📊 **Dashboard preview:**
 ![Dashboard Preview](docs/dashboard-preview.png)
