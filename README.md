@@ -17,6 +17,13 @@ Built live during the IBM Bob 2.0 hackathon (lablab.ai, Sept 25-27 2026).
 ![Dashboard Detail](docs/dashboard-detail.png)
 
 ![Dashboard Report](docs/dashboard-report.png)
+![Green/red diff viewer](docs/dashboard-diff.png)
+
+*Green/red diff viewer on the FIX report tab — the human reviews the AI-proposed patch line by line before approving Gate 2.*
+
+![Rejection path](docs/dashboard-rejection.png)
+
+*Rejection path (demonstrated): Gate 2 rejected — the pipeline stops here; APPLY and TESTS never run, no code is touched.*
 
 ## What is IBM Bob 2.0?
 
